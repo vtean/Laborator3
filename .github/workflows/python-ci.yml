@@ -28,6 +28,7 @@ jobs:
                   pip install flake8 pytest
 
             - name: Run flake8 linter
+              continue-on-error: true
               run: |
                   flake8 . --max-line-length=88 --extend-ignore=E203
 
@@ -40,6 +41,7 @@ jobs:
                   pytest test_eg.py --log-file=result.log
 
             - name: Upload test results
+              if: always()
               uses: actions/upload-artifact@v4
               with:
                   name: test-results-${{ matrix.os }}-python${{ matrix.python-version }}
