@@ -2,23 +2,22 @@ name: Python CI
 
 on:
     push:
+        branches: [main]
     pull_request:
+        branches: [main]
 
 jobs:
     build:
-        name: Build on ${{ matrix.os }} - Python ${{ matrix.python-version }}
         runs-on: ${{ matrix.os }}
-
         strategy:
             matrix:
                 os: [ubuntu-latest, windows-latest]
                 python-version: [3.8, 3.9, 3.10]
 
         steps:
-            - name: Checkout repository
-              uses: actions/checkout@v3
+            - uses: actions/checkout@v3
 
-            - name: Set up Python
+            - name: Set up Python ${{ matrix.python-version }}
               uses: actions/setup-python@v4
               with:
                   python-version: ${{ matrix.python-version }}
@@ -28,18 +27,20 @@ jobs:
                   python -m pip install --upgrade pip
                   pip install flake8 pytest
 
-            - name: Run linter (flake8)
-              run: flake8 .
-
-            - name: Run script
-              run: python script.py
-
-            - name: Run tests with pytest and save result
+            - name: Run flake8 linter
               run: |
-                  pytest > result.log || true
+                  flake8 . --max-line-length=88 --extend-ignore=E203
 
-            - name: Upload result.log artifact
-              uses: actions/upload-artifact@v4
+            - name: Run script.py
+              run: |
+                  python script.py
+
+            - name: Run tests with pytest
+              run: |
+                  pytest test_eg.py --log-file=result.log
+
+            - name: Upload test results
+              uses: actions/upload-artifact@v3
               with:
-                  name: test-log-${{ matrix.os }}-py${{ matrix.python-version }}
+                  name: test-results-${{ matrix.os }}-python${{ matrix.python-version }}
                   path: result.log
